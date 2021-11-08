@@ -1,20 +1,14 @@
 package com.cabinvoicegenerator;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public class InvoiceServiceTest {
-	InvoiceGenerator invoiceGenerator = null;
-
-	@Before
-	public void setUp() {
-		invoiceGenerator = new InvoiceGenerator();
-	}
 
 	// Write testCase to write Total fare
 	@Test
 	public void givenDistanceAndTime_ShouldReturnTotalFare() {
+		InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
 		double distance = 2.0;
 		int time = 5;
 		double fare = invoiceGenerator.calculateFare(distance, time);
@@ -24,28 +18,51 @@ public class InvoiceServiceTest {
 	// Write testCase to calculate the Minimum Charges
 	@Test
 	public void givenLessDistanceAndTime_ShouldReturnMinFare() {
+		InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
 		double distance = 0.1;
 		int time = 1;
 		double fare = invoiceGenerator.calculateFare(distance, time);
 		Assert.assertEquals(5, fare, 0.0);
-
 	}
 
-	// Write testCase should return total Fare for multiple Rides
+	// Write invoice generator for multiple rides
 	@Test
-	public void givenMultipleRides_ShouldReturnTotalFare() {
+	public void givenMultipleRides_shouldReturnTotalFare() {
+		InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
 		Ride[] rides = { new Ride(2.0, 5), new Ride(0.1, 1) };
-		double fare = invoiceGenerator.calculateFare(rides);
-		Assert.assertEquals(30, fare, 0.0);
+		InvoiceSummary summary = invoiceGenerator.calculateFare(rides);
+		InvoiceSummary expectedInvoiceSummary = new InvoiceSummary(2, 30.0);
+		Assert.assertEquals(expectedInvoiceSummary, summary);
 	}
 
-	// Write testCase should return the Invoice Summary
+	// Write testCase to return Invoice summary using userID
 	@Test
-	public void givenMultipleRides_ShouldReturnInvoiceSummary() {
-		Ride[] rides = { new Ride(5.0, 10), new Ride(10, 20) };
-		InvoiceSummary invoiceSummary = invoiceGenerator.getInvoiceSummary(rides);
-		InvoiceSummary summary = new InvoiceSummary(2, 180);
-		Assert.assertEquals(summary, invoiceSummary);
+	public void givenUserId_shouldReturnInvoiceSummary() {
+		InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
+		String userId = "rajendragund@gmailcom.com";
+		Ride[] rides = { new Ride(2.0, 5), new Ride(0.1, 1) };
+		invoiceGenerator.addRides(userId, rides);
+		InvoiceSummary summary = invoiceGenerator.getInvoiceSummary(userId);
+		InvoiceSummary expectedInvoiceSummary = new InvoiceSummary(2, 30);
+		Assert.assertEquals(expectedInvoiceSummary, summary);
 	}
 
+	// Write testCase to Normal rides and premium rides
+	@Test
+	public void givenUserIdAndRides_ShouldReturn_MultipleInvoiceSummary() {
+		InvoiceGenerator invoiceGenerator = new InvoiceGenerator();
+		String userId = "rajendragund@gmailcom.com";
+		Ride[] rides = { new Ride(2.0, 5, InvoiceGenerator.RideMode.NORMAL),
+				new Ride(0.1, 1, InvoiceGenerator.RideMode.NORMAL) };
+		invoiceGenerator.addRides(userId, rides);
+		Ride[] rides1 = { new Ride(2.0, 5, InvoiceGenerator.RideMode.PREMIUM),
+				new Ride(0.1, 1, InvoiceGenerator.RideMode.PREMIUM) };
+		invoiceGenerator.addRides(userId, rides1);
+		Ride[] rides2 = { new Ride(2.0, 5, InvoiceGenerator.RideMode.NORMAL),
+				new Ride(0.1, 1, InvoiceGenerator.RideMode.PREMIUM) };
+		invoiceGenerator.addRides(userId, rides2);
+		InvoiceSummary summary = invoiceGenerator.getInvoiceSummary(userId);
+		InvoiceSummary expectedInvoiceSummary = new InvoiceSummary(6, 125);
+		Assert.assertEquals(expectedInvoiceSummary, summary);
+	}
 }
